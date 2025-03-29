@@ -7,6 +7,12 @@ from wtforms.validators import InputRequired, Length, Email, ValidationError
 from flask_bcrypt import Bcrypt
 from bson.objectid import ObjectId  # To handle MongoDB ObjectId
 
+import cv2
+import numpy as np
+import base64
+from flask import request, jsonify
+from camera import process_image  # Your OpenCV processing function
+
 # Initialize Flask app
 app = Flask(__name__)
 
@@ -73,6 +79,27 @@ class LoginForm(FlaskForm):
 def home():
     return redirect(url_for('login'))
 
+@app.route('/menu')
+def menu():
+    return render_template('menu.html')
+
+@app.route('/scan')
+def scan():
+    return render_template('scan.html')
+
+@app.route('/search')
+def search():
+    return render_template('search.html')
+
+@app.route('/fav')
+def fav():
+    return render_template('fav.html')
+
+@app.route('/setting')
+def setting():
+    return render_template('setting.html')
+
+
 # Login Route
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -112,6 +139,22 @@ def register():
         return redirect(url_for('menu'))  # Redirect to dashboard after registration
 
     return render_template('register.html', form=form)
+
+
+
+
+@app.route('/capture', methods=['POST'])
+def capture():
+    data = request.get_json()
+    image_data = data['image']
+    header, encoded = image_data.split(',', 1)  # Remove the data URL prefix
+    img_bytes = base64.b64decode(encoded)
+    np_arr = np.frombuffer(img_bytes, np.uint8)
+    img = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+    result = process_image(img)  # Your OpenCV image processing
+    return jsonify(result=result)
+
+
 
 # Run Flask App
 if __name__ == "__main__":

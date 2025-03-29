@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Scan Ingredients</title>
+
+  <!-- Link to your scan.css file -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='scan.css') }}">
+
+  <!-- (Optional) Font Awesome for icons -->
+  <link
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    rel="stylesheet"
+  />
+</head>
+<body>
+    {% include 'sidebar.html' %}
+  <!-- Main Content -->
+  <div class="main-content">
+    <h1>Scan Ingredients</h1>
+    <div class="camera-container">
+      <!-- Camera feed / OpenCV stream would go here -->
+      <!-- For demonstration, we use a placeholder video tag -->
+      <div class="camera-frame">
+        <video id="camera-feed" autoplay playsinline></video>
+        <div class="scan-box"></div>
+      </div>
+
+      <!-- Buttons -->
+      <button class="capture-button" onclick="captureFrame()">Capture</button>
+      <button class="upload-button" onclick="triggerFileUpload()">Upload Photo</button>
+      <button class="done-button" onclick="doneScan()">Done</button>
+    </div>
+  </div>
+
+  <!-- (Optional) Script to handle camera feed with JS/OpenCV or custom logic -->
+  <!-- <script src="{{ url_for('static', filename='scan.js') }}"></script> -->
+  <script>
+    // Check if the browser supports getUserMedia and start webcam stream
+    const video = document.getElementById('camera-feed');
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      navigator.mediaDevices.getUserMedia({ video: true })
+        .then(function(stream) {
+          video.srcObject = stream;
+          video.play();
+        })
+        .catch(function(error) {
+          console.error("Error accessing webcam:", error);
+          alert("Unable to access webcam. Please check permissions or try a different browser.");
+        });
+    } else {
+      alert("Your browser does not support webcam access.");
+    }
+
+    // Capture a frame from the video feed and send it to the backend
+    function captureFrame() {
+      if (video.videoWidth === 0 || video.videoHeight === 0) {
+        alert("Webcam feed is not available yet. Please wait a moment.");
+        return;
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const context = canvas.getContext('2d');
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const dataURL = canvas.toDataURL('image/png');
+      
+      sendImageToServer(dataURL, "captured");
+    }
+
+    // Trigger the file input for uploading a photo
+    function triggerFileUpload() {
+      document.getElementById('fileInput').click();
+    }
+
+    // Process the uploaded file
+    function uploadPhoto(input) {
+      if (input.files && input.files[0]) {
+        const file = input.files[0];
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const dataURL = e.target.result;
+          sendImageToServer(dataURL, "uploaded");
+        };
+        reader.onerror = function(e) {
+          console.error("Error reading file", e);
+          alert("Failed to read the file.");
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    // Send the image data to the Flask backend
+    function sendImageToServer(dataURL, sourceType) {
+      fetch('{{ url_for("capture") }}', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: dataURL, source: sourceType })
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log('Image processed:', data);
+        // Update the UI based on the response, if needed.
+      })
+      .catch(error => {
+        console.error('Error processing image:', error);
+        alert("Error processing image. Please try again.");
+      });
+    }
+
+    // Stop the webcam stream and redirect when done
+    function doneScan() {
+      const stream = video.srcObject;
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
+      window.location.href = "{{ url_for('dashboard') }}";
+    }
+  </script>
+</body>
+
+
+</html>

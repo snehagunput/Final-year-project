@@ -1,0 +1,14 @@
+<!-- sidebar.html -->
+<link rel="stylesheet" href="{{ url_for('static', filename='sidebar.css') }}">
+
+<div class="sidebar">
+    <h2>Menu</h2>
+    <ul>
+        <li><a href="{{ url_for('menu') }}"><i class="fas fa-home"></i> Menu</a></li>
+        <li><a href="{{ url_for('scan') }}"><i class="fas fa-camera"></i> Scan</a></li>
+        <li><a href="{{ url_for('search') }}"><i class="fas fa-search"></i> Search</a></li>
+        <li><a href="{{ url_for('fav') }}"><i class="fas fa-heart"></i> Favourite</a></li>
+        <li><a href="{{ url_for('setting') }}"><i class="fas fa-cogs"></i> Setting</a></li>
+        <li><a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+    </ul>
+</div>

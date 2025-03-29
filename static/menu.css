@@ -82,7 +82,6 @@ body {
     padding-top: 30px;
 }
 
-/* Each option block */
 .option-box {
     background-color: #3498db;
     color: white;
@@ -108,11 +107,11 @@ body {
     margin: 0;
 }
 
-/* Hover effect */
 .option-box:hover {
     background-color: #2980b9;
     transform: translateY(-5px);
 }
+
 
 /* Responsive styles */
 @media (max-width: 768px) {
